@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WorkHub Vault — Secure Notes & Credentials</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#6366f1">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%236366f1'/%3E%3Cstop offset='100%25' stop-color='%2306b6d4'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23g)'/%3E%3Cpath d='M50 22a14 14 0 0 0-14 14v8h-4a4 4 0 0 0-4 4v26a4 4 0 0 0 4 4h36a4 4 0 0 0 4-4V48a4 4 0 0 0-4-4h-4v-8a14 14 0 0 0-14-14zm0 8a6 6 0 0 1 6 6v8H44v-8a6 6 0 0 1 6-6z' fill='white'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%236366f1'/%3E%3C/svg%3E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--primary:#6366f1;--primary-dark:#4f46e5;--accent:#06b6d4;
+--brand-gradient:linear-gradient(135deg,#6366f1,#06b6d4);
+--bg-app:#fafafa;--bg-surface:#ffffff;--bg-surface-2:#f5f5f7;
+--bg-header:rgba(255,255,255,.95);
+--text-primary:#0f172a;--text-secondary:#475569;--text-muted:#94a3b8;
+--border:#e2e8f0;--border-hover:#cbd5e1;
+--shadow-sm:0 1px 3px rgba(0,0,0,.06);--shadow-md:0 4px 20px rgba(0,0,0,.08);
+--shadow-lg:0 8px 40px rgba(0,0,0,.14);
+--success:#10b981;--warning:#f59e0b;--error:#ef4444;--info:#3b82f6;
+--font-display:'Poppins',sans-serif;--font-ui:'Inter',sans-serif;
+--radius-sm:8px;--radius-md:12px;--radius-lg:16px;--radius-full:9999px;
+--transition:200ms ease;--sidebar-width:250px;
+}
+[data-theme="dark"]{
+--bg-app:#0f0f1a;--bg-surface:#1a1a2e;--bg-surface-2:#16213e;
+--bg-header:rgba(15,15,26,.95);
+--text-primary:#f8fafc;--text-secondary:#cbd5e1;--text-muted:#64748b;
+--border:rgba(255,255,255,.08);--border-hover:rgba(255,255,255,.16);
+--shadow-sm:0 1px 3px rgba(0,0,0,.2);--shadow-md:0 4px 20px rgba(0,0,0,.3);--shadow-lg:0 8px 40px rgba(0,0,0,.4);
+}
+html{font-size:14px;line-height:1.5}
+body{font-family:var(--font-ui);background:var(--bg-app);color:var(--text-primary);min-height:100vh;overflow-x:hidden}
+h1,h2,h3,h4{font-family:var(--font-display)}
+a{text-decoration:none;color:inherit}
+button{cursor:pointer;border:none;background:none;font-family:var(--font-ui);font-size:inherit;color:inherit}
+input,select,textarea{font-family:var(--font-ui);font-size:inherit}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:var(--border-hover);border-radius:3px}
+
+/* ---------- LOCK SCREEN ---------- */
+.lock-screen{position:fixed;inset:0;z-index:500;background:var(--bg-app);display:flex;align-items:center;justify-content:center;padding:20px}
+.lock-card{width:100%;max-width:420px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);padding:36px 30px;text-align:center;animation:pop .35s ease}
+@keyframes pop{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+.lock-icon{width:70px;height:70px;margin:0 auto 18px;border-radius:20px;background:var(--brand-gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.8rem;box-shadow:0 8px 24px rgba(99,102,241,.35)}
+.lock-card h1{font-size:1.5rem;margin-bottom:6px}
+.lock-card p{color:var(--text-muted);font-size:.9rem;margin-bottom:22px}
+.pw-field{position:relative;margin-bottom:12px}
+.pw-field input{width:100%;padding:13px 44px 13px 16px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--bg-surface-2);color:var(--text-primary);outline:none;font-size:1rem;transition:all var(--transition)}
+.pw-field input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(99,102,241,.15)}
+.pw-field .eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:8px;color:var(--text-muted)}
+.pw-field .eye:hover{color:var(--text-primary);background:var(--bg-surface)}
+.btn-primary{padding:12px 20px;background:var(--brand-gradient);color:#fff;border-radius:var(--radius-md);font-weight:600;transition:all var(--transition);box-shadow:0 2px 10px rgba(99,102,241,.3)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(99,102,241,.4)}
+.btn-primary.full{width:100%}
+.btn-ghost{padding:10px 16px;border:1px solid var(--border);border-radius:var(--radius-md);color:var(--text-secondary);font-weight:500;transition:all var(--transition)}
+.btn-ghost:hover{background:var(--bg-surface-2);color:var(--text-primary)}
+.btn-danger{padding:10px 18px;background:var(--error);color:#fff;border-radius:var(--radius-md);font-weight:600}
+.lock-error{color:var(--error);font-size:.85rem;min-height:20px;margin-bottom:6px}
+.lock-hint{font-size:.78rem;color:var(--text-muted);margin-top:16px;line-height:1.6}
+.strength{height:6px;border-radius:3px;background:var(--bg-surface-2);overflow:hidden;margin:6px 0 4px}
+.strength span{display:block;height:100%;width:0;transition:width .3s ease,background .3s ease}
+.strength-label{font-size:.75rem;color:var(--text-muted);text-align:left;margin-bottom:10px}
+.lock-links{margin-top:14px;display:flex;justify-content:center;gap:14px;font-size:.8rem}
+.lock-links button{color:var(--primary);font-weight:500}
+
+/* ---------- HEADER ---------- */
+.header{position:sticky;top:0;z-index:100;background:var(--bg-header);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 20px;height:64px;display:flex;align-items:center;gap:14px}
+.logo{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.logo-icon{width:36px;height:36px;background:var(--brand-gradient);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:#fff}
+.logo-text{font-family:var(--font-display);font-weight:800;font-size:1.25rem;background:var(--brand-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.search-wrapper{flex:1;max-width:520px;margin:0 auto;position:relative}
+.search-input{width:100%;padding:10px 16px 10px 42px;border:1px solid var(--border);border-radius:var(--radius-full);background:var(--bg-surface-2);color:var(--text-primary);outline:none;transition:all var(--transition)}
+.search-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(99,102,241,.15);background:var(--bg-surface)}
+.search-icon{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:.9rem}
+.header-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.header-btn{width:38px;height:38px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:var(--text-secondary);transition:all var(--transition)}
+.header-btn:hover{background:var(--bg-surface-2);color:var(--text-primary)}
+.btn-add{padding:10px 18px;background:var(--brand-gradient);color:#fff;border-radius:var(--radius-full);font-weight:600;font-size:.9rem;display:flex;align-items:center;gap:8px;box-shadow:0 2px 10px rgba(99,102,241,.3)}
+.btn-add:hover{transform:translateY(-1px)}
+.hamburger{display:none;width:38px;height:38px;border-radius:var(--radius-sm);align-items:center;justify-content:center;color:var(--text-secondary)}
+
+/* ---------- LAYOUT ---------- */
+.app-layout{display:flex;min-height:calc(100vh - 64px)}
+.sidebar{width:var(--sidebar-width);background:var(--bg-surface);border-right:1px solid var(--border);padding:18px 14px;flex-shrink:0;position:sticky;top:64px;height:calc(100vh - 64px);overflow-y:auto;transition:transform var(--transition)}
+.sidebar-title{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);padding:0 12px;margin:18px 0 8px}
+.sidebar-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--radius-sm);cursor:pointer;color:var(--text-secondary);font-size:.9rem;font-weight:500;transition:all var(--transition)}
+.sidebar-item:hover{background:var(--bg-surface-2);color:var(--text-primary)}
+.sidebar-item.active{background:rgba(99,102,241,.1);color:var(--primary)}
+.sidebar-item .icon{width:20px;text-align:center}
+.sidebar-item .count{margin-left:auto;font-size:.75rem;color:var(--text-muted);background:var(--bg-surface-2);padding:2px 8px;border-radius:var(--radius-full);font-weight:600}
+.sidebar-item.active .count{background:rgba(99,102,241,.15);color:var(--primary)}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:89}
+.main{flex:1;padding:22px;min-width:0}
+.top-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.view-title{font-family:var(--font-display);font-weight:700;font-size:1.4rem}
+.view-count{font-size:.85rem;color:var(--text-muted);margin-left:8px;font-weight:400}
+.sort-select{padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-surface);color:var(--text-primary);font-size:.85rem;outline:none;cursor:pointer}
+
+/* ---------- CARDS ---------- */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+.cards-grid.list{grid-template-columns:1fr}
+.vault-card{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;transition:all var(--transition);position:relative;animation:fade .25s ease both}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.vault-card:hover{border-color:var(--border-hover);box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.card-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
+.card-avatar{width:42px;height:42px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#fff;flex-shrink:0}
+.card-title{font-weight:600;font-size:.98rem;word-break:break-word}
+.card-sub{font-size:.78rem;color:var(--text-muted);margin-top:2px}
+.card-actions{margin-left:auto;display:flex;gap:2px}
+.icon-btn{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:.85rem;transition:all var(--transition)}
+.icon-btn:hover{background:var(--bg-surface-2);color:var(--text-primary)}
+.icon-btn.fav{color:#f59e0b}
+.field-row{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--radius-sm);background:var(--bg-surface-2);margin-bottom:6px;font-size:.85rem}
+.field-label{color:var(--text-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;flex-shrink:0;min-width:74px}
+.field-value{flex:1;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;color:var(--text-primary)}
+.field-value.masked{letter-spacing:2px;font-family:var(--font-ui)}
+.field-btns{display:flex;gap:2px;margin-left:auto}
+.tag-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.tag{font-size:.7rem;padding:3px 9px;border-radius:var(--radius-full);background:rgba(99,102,241,.1);color:var(--primary);font-weight:500}
+.card-note{font-size:.82rem;color:var(--text-secondary);margin-top:10px;white-space:pre-wrap;word-break:break-word;border-left:3px solid var(--border);padding-left:10px}
+.empty-state{text-align:center;padding:70px 20px;color:var(--text-muted)}
+.empty-state i{font-size:2.6rem;margin-bottom:14px;opacity:.5}
+.empty-state h3{color:var(--text-secondary);margin-bottom:6px}
+
+/* ---------- MODAL ---------- */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:18px}
+.modal-overlay.active{display:flex}
+.modal{background:var(--bg-surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);width:100%;max-width:560px;max-height:92vh;display:flex;flex-direction:column;animation:pop .25s ease}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border)}
+.modal-header h2{font-size:1.15rem}
+.modal-body{padding:20px 22px;overflow-y:auto}
+.modal-footer{padding:14px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:.8rem;font-weight:600;color:var(--text-secondary);margin-bottom:6px}
+.form-input,.form-select{width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-surface-2);color:var(--text-primary);outline:none;transition:all var(--transition)}
+.form-input:focus,.form-select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(99,102,241,.13);background:var(--bg-surface)}
+textarea.form-input{min-height:80px;resize:vertical}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.type-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;margin-bottom:6px}
+.type-opt{border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 6px;text-align:center;font-size:.78rem;font-weight:500;color:var(--text-secondary);transition:all var(--transition)}
+.type-opt i{display:block;font-size:1.1rem;margin-bottom:6px}
+.type-opt:hover{border-color:var(--primary);color:var(--primary)}
+.type-opt.active{border-color:var(--primary);background:rgba(99,102,241,.1);color:var(--primary)}
+.custom-field{display:grid;grid-template-columns:1fr 1.4fr auto;gap:8px;margin-bottom:8px;align-items:center}
+.inline-btn{font-size:.8rem;color:var(--primary);font-weight:600;display:inline-flex;align-items:center;gap:6px;padding:6px 0}
+.gen-row{display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap}
+.gen-row label{font-size:.78rem;color:var(--text-secondary);display:flex;align-items:center;gap:5px}
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border);font-size:.9rem}
+.setting-row:last-child{border-bottom:none}
+.setting-row .desc{font-size:.76rem;color:var(--text-muted);margin-top:2px;max-width:330px}
+.toggle-switch{position:relative;width:44px;height:24px;flex-shrink:0}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--border-hover);border-radius:24px;transition:var(--transition);cursor:pointer}
+.toggle-slider::before{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:var(--transition)}
+.toggle-switch input:checked + .toggle-slider{background:var(--primary)}
+.toggle-switch input:checked + .toggle-slider::before{transform:translateX(20px)}
+.danger-zone{border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.05);border-radius:var(--radius-md);padding:14px;margin-top:16px}
+.toast-container{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:600;display:flex;flex-direction:column;gap:8px;align-items:center}
+.toast{background:var(--bg-surface);border:1px solid var(--border);box-shadow:var(--shadow-lg);border-radius:var(--radius-full);padding:11px 20px;font-size:.87rem;font-weight:500;display:flex;align-items:center;gap:9px;animation:pop .2s ease}
+.toast.success{border-color:var(--success);color:var(--success)}
+.toast.error{border-color:var(--error);color:var(--error)}
+.pill{font-size:.7rem;padding:3px 9px;border-radius:var(--radius-full);background:rgba(16,185,129,.12);color:var(--success);font-weight:600}
+@media(max-width:860px){
+.hamburger{display:flex}
+.sidebar{position:fixed;top:64px;left:0;z-index:90;transform:translateX(-100%)}
+.sidebar.open{transform:none}
+.sidebar-overlay.open{display:block}
+.logo-text{display:none}
+.btn-add span{display:none}
+.btn-add{padding:10px 14px}
+.form-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- LOCK SCREEN -->
+<div class="lock-screen" id="lockScreen">
+  <div class="lock-card">
+    <div class="lock-icon"><i class="fas fa-shield-halved"></i></div>
+    <h1 id="lockTitle">Unlock your Vault</h1>
+    <p id="lockSubtitle">Enter your master password to decrypt your data.</p>
+    <div class="pw-field">
+      <input type="password" id="masterPw" placeholder="Master password" autocomplete="current-password">
+      <button class="eye" onclick="togglePwVisible('masterPw',this)"><i class="fas fa-eye"></i></button>
+    </div>
+    <div id="setupExtra" style="display:none">
+      <div class="strength"><span id="pwStrengthBar"></span></div>
+      <div class="strength-label" id="pwStrengthLabel">Use at least 10 characters</div>
+      <div class="pw-field">
+        <input type="password" id="masterPw2" placeholder="Confirm master password" autocomplete="new-password">
+        <button class="eye" onclick="togglePwVisible('masterPw2',this)"><i class="fas fa-eye"></i></button>
+      </div>
+      <div class="pw-field">
+        <input type="text" id="masterHint" placeholder="Password hint (optional)">
+      </div>
+    </div>
+    <div class="lock-error" id="lockError"></div>
+    <button class="btn-primary full" id="lockBtn" onclick="submitMaster()">Unlock Vault</button>
+    <div class="lock-links">
+      <button onclick="location.href='index.html'"><i class="fas fa-arrow-left"></i> Back to WorkHub</button>
+      <button onclick="document.getElementById('restoreFile').click()">Restore backup</button>
+    </div>
+    <div class="lock-hint" id="lockHintText"></div>
+    <div class="lock-hint">
+      <i class="fas fa-lock"></i> Everything is encrypted with AES-256-GCM in your browser.
+      Your master password is never stored or sent anywhere — if you lose it, the data cannot be recovered.
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+<header class="header">
+  <button class="hamburger" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+  <a class="logo" href="index.html" title="Back to WorkHub">
+    <div class="logo-icon"><i class="fas fa-shield-halved"></i></div>
+    <span class="logo-text">Vault</span>
+  </a>
+  <div class="search-wrapper">
+    <i class="fas fa-search search-icon"></i>
+    <input type="text" class="search-input" id="searchInput" placeholder="Search vault… (press /)" autocomplete="off">
+  </div>
+  <div class="header-actions">
+    <button class="header-btn" title="Password generator" onclick="openGenerator()"><i class="fas fa-dice"></i></button>
+    <button class="header-btn" title="Toggle theme" onclick="toggleTheme()"><i class="fas fa-moon" id="themeIcon"></i></button>
+    <button class="header-btn" title="Settings" onclick="openSettings()"><i class="fas fa-gear"></i></button>
+    <button class="header-btn" title="Lock vault (Ctrl+L)" onclick="lockVault()"><i class="fas fa-lock"></i></button>
+    <button class="btn-add" onclick="openItemModal()"><i class="fas fa-plus"></i><span>New Item</span></button>
+  </div>
+</header>
+
+<div class="app-layout">
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-title">Vault</div>
+    <div id="sidebarFilters"></div>
+    <div class="sidebar-title">Types</div>
+    <div id="sidebarTypes"></div>
+    <div class="sidebar-title">Tools</div>
+    <div class="sidebar-item" onclick="openGenerator()"><span class="icon">🎲</span>Password Generator</div>
+    <div class="sidebar-item" onclick="openSettings()"><span class="icon">⚙️</span>Backup &amp; Settings</div>
+    <div class="sidebar-item" onclick="location.href='index.html'"><span class="icon">🔗</span>Website Hub</div>
+  </aside>
+
+  <main class="main">
+    <div class="top-bar">
+      <div><span class="view-title" id="viewTitle">All Items</span><span class="view-count" id="viewCount"></span></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select class="sort-select" id="sortSelect" onchange="renderCards()">
+          <option value="updated">Recently updated</option>
+          <option value="created">Recently added</option>
+          <option value="az">Name A–Z</option>
+          <option value="za">Name Z–A</option>
+        </select>
+        <button class="header-btn" id="layoutBtn" title="Toggle layout" onclick="toggleLayout()"><i class="fas fa-th-large"></i></button>
+      </div>
+    </div>
+    <div class="cards-grid" id="cardsGrid"></div>
+    <div class="empty-state" id="emptyState" style="display:none">
+      <i class="fas fa-box-open"></i>
+      <h3>Nothing here yet</h3>
+      <p>Add your first secure item to get started.</p>
+      <br><button class="btn-primary" onclick="openItemModal()"><i class="fas fa-plus"></i> Add Item</button>
+    </div>
+  </main>
+</div>
+</div>
+
+<!-- ITEM MODAL -->
+<div class="modal-overlay" id="itemModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="itemModalTitle">New Item</h2>
+      <button class="icon-btn" onclick="closeModal('itemModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Type</label>
+        <div class="type-grid" id="typeGrid"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Title *</label>
+        <input type="text" class="form-input" id="fTitle" placeholder="e.g. HDFC Bank, Aadhaar Card, Gmail">
+      </div>
+      <div id="typeFields"></div>
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea class="form-input" id="fNotes" placeholder="Anything else you want to remember…"></textarea>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Tags (comma separated)</label>
+          <input type="text" class="form-input" id="fTags" placeholder="personal, work">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Options</label>
+          <label style="display:flex;align-items:center;gap:8px;padding-top:9px;font-size:.88rem">
+            <input type="checkbox" id="fFav"> Mark as favorite
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Custom fields</label>
+        <div id="customFields"></div>
+        <button class="inline-btn" onclick="addCustomField()"><i class="fas fa-plus"></i> Add custom field</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('itemModal')">Cancel</button>
+      <button class="btn-primary" id="itemSaveBtn" onclick="saveItem()">Save Item</button>
+    </div>
+  </div>
+</div>
+
+<!-- GENERATOR -->
+<div class="modal-overlay" id="genModal">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header">
+      <h2>Password Generator</h2>
+      <button class="icon-btn" onclick="closeModal('genModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="field-row" style="padding:14px">
+        <span class="field-value" id="genOut" style="font-size:1rem"></span>
+        <div class="field-btns">
+          <button class="icon-btn" title="Regenerate" onclick="runGenerator()"><i class="fas fa-rotate"></i></button>
+          <button class="icon-btn" title="Copy" onclick="copyText(document.getElementById('genOut').textContent)"><i class="fas fa-copy"></i></button>
+        </div>
+      </div>
+      <div class="strength"><span id="genStrengthBar"></span></div>
+      <div class="strength-label" id="genStrengthLabel"></div>
+      <div class="form-group">
+        <label class="form-label">Length: <span id="genLenLabel">18</span></label>
+        <input type="range" id="genLen" min="6" max="64" value="18" style="width:100%" oninput="runGenerator()">
+      </div>
+      <div class="gen-row">
+        <label><input type="checkbox" id="genUpper" checked onchange="runGenerator()"> A-Z</label>
+        <label><input type="checkbox" id="genLower" checked onchange="runGenerator()"> a-z</label>
+        <label><input type="checkbox" id="genNum" checked onchange="runGenerator()"> 0-9</label>
+        <label><input type="checkbox" id="genSym" checked onchange="runGenerator()"> !@#$</label>
+        <label><input type="checkbox" id="genAmb" onchange="runGenerator()"> No look-alikes</label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('genModal')">Close</button>
+      <button class="btn-primary" onclick="copyText(document.getElementById('genOut').textContent)">Copy password</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Backup &amp; Settings</h2>
+      <button class="icon-btn" onclick="closeModal('settingsModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="sidebar-title" style="padding:0">Use across browsers &amp; devices</div>
+      <p style="font-size:.84rem;color:var(--text-secondary);margin:6px 0 12px">
+        Export an <b>encrypted backup file</b> (.vault) and open it on any other browser/phone with
+        <b>Restore backup</b> on the lock screen. The file stays encrypted with your master password,
+        so it's safe in Google Drive, email or a USB stick.
+      </p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn-primary" onclick="exportEncrypted()"><i class="fas fa-file-shield"></i> Export encrypted backup</button>
+        <button class="btn-ghost" onclick="document.getElementById('restoreFile').click()"><i class="fas fa-file-import"></i> Import backup</button>
+        <button class="btn-ghost" onclick="exportPlainJSON()"><i class="fas fa-file-code"></i> Export plain JSON</button>
+      </div>
+
+      <div class="sidebar-title" style="padding:0">Security</div>
+      <div class="setting-row">
+        <div>Auto-lock<div class="desc">Lock the vault automatically after inactivity.</div></div>
+        <select class="sort-select" id="setAutoLock" onchange="saveSettings()">
+          <option value="0">Never</option><option value="1">1 min</option>
+          <option value="5">5 min</option><option value="15">15 min</option><option value="30">30 min</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <div>Clear clipboard<div class="desc">Wipe copied secrets from clipboard after 30 seconds.</div></div>
+        <label class="toggle-switch"><input type="checkbox" id="setClipClear" onchange="saveSettings()"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <div>Hide secrets by default<div class="desc">Passwords and numbers stay masked until you reveal them.</div></div>
+        <label class="toggle-switch"><input type="checkbox" id="setMask" onchange="saveSettings()"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <div>Lock when tab is hidden<div class="desc">Locks as soon as you switch tabs or minimise.</div></div>
+        <label class="toggle-switch"><input type="checkbox" id="setLockHidden" onchange="saveSettings()"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <div>Change master password<div class="desc">Re-encrypts every item with the new password.</div></div>
+        <button class="btn-ghost" onclick="changeMaster()">Change</button>
+      </div>
+
+      <div class="danger-zone">
+        <b style="color:var(--error)">Danger zone</b>
+        <div class="desc" style="margin:4px 0 10px">Permanently delete this vault from this browser. Keep a backup first!</div>
+        <button class="btn-danger" onclick="destroyVault()"><i class="fas fa-trash"></i> Delete vault</button>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn-ghost" onclick="closeModal('settingsModal')">Close</button></div>
+  </div>
+</div>
+
+<!-- CONFIRM -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-body" style="text-align:center;padding:28px">
+      <div style="font-size:2rem;color:var(--error);margin-bottom:10px"><i class="fas fa-triangle-exclamation"></i></div>
+      <h3 id="confirmTitle">Are you sure?</h3>
+      <p id="confirmMsg" style="color:var(--text-muted);margin-top:6px"></p>
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:20px">
+        <button class="btn-ghost" onclick="closeModal('confirmModal')">Cancel</button>
+        <button class="btn-danger" id="confirmBtn">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<input type="file" id="restoreFile" accept=".vault,.json" style="display:none" onchange="handleRestore(event)">
+
+<script>
+/* =======================================================================
+   WorkHub Vault — client-side encrypted store
+   Crypto: PBKDF2-SHA256 (310k) -> AES-256-GCM. Nothing leaves the browser.
+   ======================================================================= */
+const K = { blob:'wh_vault_blob', settings:'wh_vault_settings', theme:'wh_vault_theme', hint:'wh_vault_hint' };
+const PBKDF2_ITER = 310000;
+
+let masterKey = null;          // CryptoKey, memory only
+let items = [];                // decrypted items, memory only
+let settings = { autoLock:5, clipClear:true, mask:true, lockHidden:false, layout:'grid' };
+let filter = 'all', search = '', revealed = new Set(), editingId = null, currentType = 'login';
+let lockTimer = null, setupMode = false, pendingRestore = null;
+
+const TYPES = {
+  login:   { label:'Login',        icon:'fa-key',            color:'#6366f1', fields:[['username','Username / Email',0],['password','Password',1],['url','Website',0],['totp','2FA backup codes',1]] },
+  bank:    { label:'Bank Account', icon:'fa-building-columns',color:'#10b981',fields:[['bank','Bank name',0],['account','Account number',1],['ifsc','IFSC / Routing / SWIFT',0],['holder','Account holder',0],['branch','Branch',0],['netbanking','Net-banking password',1]] },
+  card:    { label:'Card',         icon:'fa-credit-card',    color:'#f59e0b', fields:[['number','Card number',1],['holder','Cardholder',0],['expiry','Expiry (MM/YY)',0],['cvv','CVV',1],['pin','ATM PIN',1]] },
+  id:      { label:'ID Card',      icon:'fa-id-card',        color:'#ec4899', fields:[['idnumber','ID number',1],['fullname','Full name',0],['issued','Issued on',0],['expires','Expires on',0],['authority','Issuing authority',0]] },
+  address: { label:'Address',      icon:'fa-location-dot',   color:'#06b6d4', fields:[['line1','Address line 1',0],['line2','Address line 2',0],['city','City',0],['state','State',0],['zip','ZIP / PIN code',0],['country','Country',0],['phone','Phone',0]] },
+  note:    { label:'Secure Note',  icon:'fa-note-sticky',    color:'#8b5cf6', fields:[] },
+  wifi:    { label:'Wi-Fi',        icon:'fa-wifi',           color:'#14b8a6', fields:[['ssid','Network name',0],['password','Password',1],['security','Security type',0]] },
+  other:   { label:'Other',        icon:'fa-shield-halved',  color:'#64748b', fields:[['value','Value',1]] }
+};
+
+/* ---------- crypto helpers ---------- */
+const enc = new TextEncoder(), dec = new TextDecoder();
+const b64 = b => btoa(String.fromCharCode(...new Uint8Array(b)));
+const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+
+async function deriveKey(password, salt, iter = PBKDF2_ITER) {
+  const base = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name:'PBKDF2', salt, iterations:iter, hash:'SHA-256' },
+    base, { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']);
+}
+async function encryptPayload(key, obj) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, key, enc.encode(JSON.stringify(obj)));
+  return { iv:b64(iv), ct:b64(ct) };
+}
+async function decryptPayload(key, iv, ct) {
+  const pt = await crypto.subtle.decrypt({ name:'AES-GCM', iv:unb64(iv) }, key, unb64(ct));
+  return JSON.parse(dec.decode(pt));
+}
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : 'id-' + Date.now() + Math.random().toString(16).slice(2));
+
+/* ---------- vault storage ---------- */
+function getBlob(){ try { return JSON.parse(localStorage.getItem(K.blob)); } catch(e){ return null; } }
+async function persist() {
+  if (!masterKey) return;
+  const blob = getBlob();
+  const { iv, ct } = await encryptPayload(masterKey, items);
+  localStorage.setItem(K.blob, JSON.stringify({ v:1, salt:blob.salt, iter:blob.iter || PBKDF2_ITER, iv, ct, updated:Date.now() }));
+}
+
+/* ---------- lock screen ---------- */
+function togglePwVisible(id, btn) {
+  const el = document.getElementById(id);
+  el.type = el.type === 'password' ? 'text' : 'password';
+  btn.innerHTML = `<i class="fas fa-eye${el.type === 'password' ? '' : '-slash'}"></i>`;
+}
+function scorePassword(p) {
+  let s = 0;
+  if (p.length >= 8) s++; if (p.length >= 12) s++; if (p.length >= 16) s++;
+  if (/[a-z]/.test(p) && /[A-Z]/.test(p)) s++;
+  if (/\d/.test(p)) s++; if (/[^\w]/.test(p)) s++;
+  return Math.min(s, 5);
+}
+function paintStrength(barId, labelId, pw) {
+  const s = scorePassword(pw);
+  const colors = ['#ef4444','#ef4444','#f59e0b','#f59e0b','#10b981','#10b981'];
+  const labels = ['Too weak','Weak','Fair','Good','Strong','Excellent'];
+  const bar = document.getElementById(barId);
+  bar.style.width = (pw ? (s + 1) / 6 * 100 : 0) + '%';
+  bar.style.background = colors[s];
+  document.getElementById(labelId).textContent = pw ? labels[s] : 'Use at least 10 characters';
+}
+function initLockScreen() {
+  const blob = getBlob();
+  setupMode = !blob;
+  document.getElementById('setupExtra').style.display = setupMode ? 'block' : 'none';
+  document.getElementById('lockTitle').textContent = setupMode ? 'Create your Vault' : 'Unlock your Vault';
+  document.getElementById('lockSubtitle').textContent = setupMode
+    ? 'Choose a strong master password. It encrypts everything you save.'
+    : 'Enter your master password to decrypt your data.';
+  document.getElementById('lockBtn').textContent = setupMode ? 'Create Vault' : 'Unlock Vault';
+  const hint = localStorage.getItem(K.hint);
+  document.getElementById('lockHintText').textContent = (!setupMode && hint) ? 'Hint: ' + hint : '';
+  setTimeout(() => document.getElementById('masterPw').focus(), 150);
+}
+async function submitMaster() {
+  const pw = document.getElementById('masterPw').value;
+  const err = document.getElementById('lockError');
+  err.textContent = '';
+  if (!pw) { err.textContent = 'Please enter a password.'; return; }
+
+  if (setupMode) {
+    if (pw.length < 8) { err.textContent = 'Use at least 8 characters.'; return; }
+    if (pw !== document.getElementById('masterPw2').value) { err.textContent = 'Passwords do not match.'; return; }
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    masterKey = await deriveKey(pw, salt);
+    items = pendingRestore || [];
+    localStorage.setItem(K.blob, JSON.stringify({ v:1, salt:b64(salt), iter:PBKDF2_ITER, iv:'', ct:'' }));
+    const hint = document.getElementById('masterHint').value.trim();
+    if (hint) localStorage.setItem(K.hint, hint); else localStorage.removeItem(K.hint);
+    await persist();
+    pendingRestore = null;
+    enterApp();
+    showToast('Vault created and encrypted', 'success');
+    return;
+  }
+
+  const blob = getBlob();
+  document.getElementById('lockBtn').textContent = 'Decrypting…';
+  try {
+    const key = await deriveKey(pw, unb64(blob.salt), blob.iter || PBKDF2_ITER);
+    items = blob.ct ? await decryptPayload(key, blob.iv, blob.ct) : [];
+    masterKey = key;
+    if (pendingRestore) { await mergeItems(pendingRestore); pendingRestore = null; }
+    enterApp();
+  } catch (e) {
+    err.textContent = 'Wrong master password. Try again.';
+    document.getElementById('masterPw').select();
+  }
+  document.getElementById('lockBtn').textContent = setupMode ? 'Create Vault' : 'Unlock Vault';
+}
+function enterApp() {
+  document.getElementById('masterPw').value = '';
+  const p2 = document.getElementById('masterPw2'); if (p2) p2.value = '';
+  document.getElementById('lockScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  render();
+  resetLockTimer();
+}
+function lockVault() {
+  masterKey = null; items = []; revealed.clear();
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('lockScreen').style.display = 'flex';
+  document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+  initLockScreen();
+}
+function resetLockTimer() {
+  clearTimeout(lockTimer);
+  const mins = Number(settings.autoLock);
+  if (mins > 0 && masterKey) lockTimer = setTimeout(() => { lockVault(); showToast('Vault auto-locked'); }, mins * 60000);
+}
+
+/* ---------- rendering ---------- */
+function render() { renderSidebar(); renderCards(); }
+
+function renderSidebar() {
+  const counts = { all: items.length, fav: items.filter(i => i.favorite).length };
+  document.getElementById('sidebarFilters').innerHTML = `
+    <div class="sidebar-item ${filter==='all'?'active':''}" onclick="setFilter('all')"><span class="icon">🗂️</span>All Items<span class="count">${counts.all}</span></div>
+    <div class="sidebar-item ${filter==='fav'?'active':''}" onclick="setFilter('fav')"><span class="icon">⭐</span>Favorites<span class="count">${counts.fav}</span></div>
+    <div class="sidebar-item ${filter==='recent'?'active':''}" onclick="setFilter('recent')"><span class="icon">🕒</span>Recently used</div>`;
+  document.getElementById('sidebarTypes').innerHTML = Object.entries(TYPES).map(([k, t]) => {
+    const c = items.filter(i => i.type === k).length;
+    return `<div class="sidebar-item ${filter==='type:'+k?'active':''}" onclick="setFilter('type:${k}')">
+      <span class="icon" style="color:${t.color}"><i class="fas ${t.icon}"></i></span>${t.label}<span class="count">${c}</span></div>`;
+  }).join('');
+}
+function setFilter(f) { filter = f; render(); if (window.innerWidth <= 860) toggleSidebar(false); }
+
+function matches(it, q) {
+  const hay = [it.title, it.notes, (it.tags||[]).join(' '), TYPES[it.type]?.label,
+    ...Object.entries(it.fields||{}).filter(([k]) => !isSecretKey(it.type, k)).map(([,v]) => v),
+    ...(it.custom||[]).filter(c => !c.secret).map(c => c.label + ' ' + c.value)].join(' ').toLowerCase();
+  return hay.includes(q);
+}
+function isSecretKey(type, key) {
+  const f = (TYPES[type]?.fields || []).find(x => x[0] === key);
+  return f ? !!f[2] : false;
+}
+function getVisible() {
+  let list = items.slice();
+  if (filter === 'fav') list = list.filter(i => i.favorite);
+  else if (filter === 'recent') list = list.filter(i => i.lastUsed).sort((a,b) => b.lastUsed - a.lastUsed).slice(0, 20);
+  else if (filter.startsWith('type:')) list = list.filter(i => i.type === filter.slice(5));
+  const q = search.trim().toLowerCase();
+  if (q) list = list.filter(i => matches(i, q));
+  const sort = document.getElementById('sortSelect').value;
+  if (filter !== 'recent') {
+    if (sort === 'updated') list.sort((a,b) => (b.updated||0) - (a.updated||0));
+    else if (sort === 'created') list.sort((a,b) => (b.created||0) - (a.created||0));
+    else if (sort === 'az') list.sort((a,b) => a.title.localeCompare(b.title));
+    else list.sort((a,b) => b.title.localeCompare(a.title));
+  }
+  list.sort((a,b) => (b.favorite?1:0) - (a.favorite?1:0));
+  return list;
+}
+function esc(s=''){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function renderCards() {
+  const list = getVisible();
+  const grid = document.getElementById('cardsGrid');
+  grid.className = 'cards-grid' + (settings.layout === 'list' ? ' list' : '');
+  document.getElementById('viewTitle').textContent =
+    filter === 'all' ? 'All Items' : filter === 'fav' ? 'Favorites' : filter === 'recent' ? 'Recently used'
+    : TYPES[filter.slice(5)].label + 's';
+  document.getElementById('viewCount').textContent = list.length ? `${list.length} item${list.length>1?'s':''}` : '';
+  document.getElementById('emptyState').style.display = list.length ? 'none' : 'block';
+
+  grid.innerHTML = list.map(it => {
+    const T = TYPES[it.type] || TYPES.other;
+    const rows = [];
+    (T.fields || []).forEach(([key, label, secret]) => {
+      const v = (it.fields || {})[key];
+      if (v) rows.push(fieldRow(it.id, key, label, v, secret));
+    });
+    (it.custom || []).forEach((c, idx) => { if (c.value) rows.push(fieldRow(it.id, 'c' + idx, c.label || 'Field', c.value, c.secret)); });
+    return `<div class="vault-card">
+      <div class="card-head">
+        <div class="card-avatar" style="background:${T.color}"><i class="fas ${T.icon}"></i></div>
+        <div style="min-width:0">
+          <div class="card-title">${esc(it.title)}</div>
+          <div class="card-sub">${T.label}${it.updated ? ' · ' + timeAgo(it.updated) : ''}</div>
+        </div>
+        <div class="card-actions">
+          <button class="icon-btn ${it.favorite?'fav':''}" title="Favorite" onclick="toggleFav('${it.id}')"><i class="fa${it.favorite?'s':'r'} fa-star"></i></button>
+          <button class="icon-btn" title="Edit" onclick="openItemModal('${it.id}')"><i class="fas fa-pen"></i></button>
+          <button class="icon-btn" title="Delete" onclick="deleteItem('${it.id}')"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>
+      ${rows.join('')}
+      ${it.notes ? `<div class="card-note">${esc(it.notes)}</div>` : ''}
+      ${(it.tags||[]).length ? `<div class="tag-row">${it.tags.map(t => `<span class="tag">#${esc(t)}</span>`).join('')}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+function fieldRow(id, key, label, value, secret) {
+  const rk = id + ':' + key;
+  const hidden = secret && settings.mask && !revealed.has(rk);
+  const shown = hidden ? '•'.repeat(Math.min(String(value).length, 14)) : esc(value);
+  return `<div class="field-row">
+    <span class="field-label">${esc(label)}</span>
+    <span class="field-value ${hidden?'masked':''}">${shown}</span>
+    <span class="field-btns">
+      ${secret ? `<button class="icon-btn" title="${hidden?'Reveal':'Hide'}" onclick="toggleReveal('${rk}')"><i class="fas fa-eye${hidden?'':'-slash'}"></i></button>` : ''}
+      <button class="icon-btn" title="Copy" onclick="copyField('${id}','${key}')"><i class="fas fa-copy"></i></button>
+    </span></div>`;
+}
+function toggleReveal(rk){ revealed.has(rk) ? revealed.delete(rk) : revealed.add(rk); renderCards(); }
+function timeAgo(ts) {
+  const d = (Date.now() - ts) / 1000;
+  if (d < 60) return 'just now';
+  if (d < 3600) return Math.floor(d/60) + 'm ago';
+  if (d < 86400) return Math.floor(d/3600) + 'h ago';
+  if (d < 2592000) return Math.floor(d/86400) + 'd ago';
+  return new Date(ts).toLocaleDateString();
+}
+function getFieldValue(it, key) {
+  if (key.startsWith('c') && /^c\d+$/.test(key)) return (it.custom[+key.slice(1)] || {}).value;
+  return (it.fields || {})[key];
+}
+async function copyField(id, key) {
+  const it = items.find(i => i.id === id); if (!it) return;
+  await copyText(getFieldValue(it, key));
+  it.lastUsed = Date.now(); persist();
+}
+async function copyText(text) {
+  if (!text) return;
+  try { await navigator.clipboard.writeText(text); }
+  catch(e) {
+    const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy'); ta.remove();
+  }
+  showToast('Copied' + (settings.clipClear ? ' — clipboard clears in 30s' : ''), 'success');
+  if (settings.clipClear) setTimeout(() => navigator.clipboard.writeText('').catch(()=>{}), 30000);
+}
+function toggleFav(id) { const it = items.find(i => i.id === id); it.favorite = !it.favorite; it.updated = Date.now(); persist(); render(); }
+function deleteItem(id) {
+  const it = items.find(i => i.id === id);
+  confirmDialog('Delete item?', `“${it.title}” will be permanently removed.`, () => {
+    items = items.filter(i => i.id !== id); persist(); render(); showToast('Item deleted');
+  });
+}
+
+/* ---------- item modal ---------- */
+function openItemModal(id) {
+  editingId = id || null;
+  const it = id ? items.find(i => i.id === id) : null;
+  currentType = it ? it.type : 'login';
+  document.getElementById('itemModalTitle').textContent = it ? 'Edit Item' : 'New Item';
+  document.getElementById('itemSaveBtn').textContent = it ? 'Save Changes' : 'Add Item';
+  document.getElementById('fTitle').value = it ? it.title : '';
+  document.getElementById('fNotes').value = it ? (it.notes || '') : '';
+  document.getElementById('fTags').value = it ? (it.tags || []).join(', ') : '';
+  document.getElementById('fFav').checked = it ? !!it.favorite : false;
+  renderTypeGrid(); renderTypeFields(it ? it.fields : {});
+  document.getElementById('customFields').innerHTML = '';
+  (it?.custom || []).forEach(c => addCustomField(c));
+  openModal('itemModal');
+  setTimeout(() => document.getElementById('fTitle').focus(), 120);
+}
+function renderTypeGrid() {
+  document.getElementById('typeGrid').innerHTML = Object.entries(TYPES).map(([k, t]) =>
+    `<button class="type-opt ${currentType===k?'active':''}" onclick="pickType('${k}')"><i class="fas ${t.icon}" style="color:${t.color}"></i>${t.label}</button>`).join('');
+}
+function pickType(k) { const cur = collectTypeFields(); currentType = k; renderTypeGrid(); renderTypeFields(cur); }
+function renderTypeFields(values = {}) {
+  const T = TYPES[currentType];
+  document.getElementById('typeFields').innerHTML = T.fields.map(([key, label, secret]) => `
+    <div class="form-group">
+      <label class="form-label">${label}</label>
+      <div class="pw-field">
+        <input class="form-input" data-fkey="${key}" type="${secret?'password':'text'}" value="${esc(values[key] || '')}" placeholder="${label}">
+        ${secret ? `<button class="eye" onclick="togglePwVisible(this.previousElementSibling.id || setTmpId(this),this)"><i class="fas fa-eye"></i></button>` : ''}
+      </div>
+      ${key === 'password' ? `<button class="inline-btn" onclick="fillGenerated(this)"><i class="fas fa-dice"></i> Generate strong password</button>` : ''}
+    </div>`).join('');
+}
+function setTmpId(btn) { const inp = btn.previousElementSibling; if (!inp.id) inp.id = 'tmp-' + uid(); return inp.id; }
+function fillGenerated(btn) {
+  const input = btn.parentElement.querySelector('[data-fkey="password"]');
+  input.type = 'text'; input.value = generatePassword(18, true, true, true, true, false);
+  showToast('Strong password generated', 'success');
+}
+function collectTypeFields() {
+  const o = {};
+  document.querySelectorAll('#typeFields [data-fkey]').forEach(i => { if (i.value.trim()) o[i.dataset.fkey] = i.value.trim(); });
+  return o;
+}
+function addCustomField(c = {}) {
+  const wrap = document.createElement('div');
+  wrap.className = 'custom-field';
+  wrap.innerHTML = `<input class="form-input cf-label" placeholder="Label" value="${esc(c.label||'')}">
+    <input class="form-input cf-value" placeholder="Value" value="${esc(c.value||'')}">
+    <label style="display:flex;align-items:center;gap:5px;font-size:.75rem;white-space:nowrap">
+      <input type="checkbox" class="cf-secret" ${c.secret?'checked':''}>hide</label>`;
+  const del = document.createElement('button');
+  del.className = 'icon-btn'; del.innerHTML = '<i class="fas fa-times"></i>';
+  del.onclick = () => wrap.remove();
+  wrap.appendChild(del);
+  document.getElementById('customFields').appendChild(wrap);
+}
+function saveItem() {
+  const title = document.getElementById('fTitle').value.trim();
+  if (!title) { showToast('Please enter a title', 'error'); return; }
+  const custom = [...document.querySelectorAll('#customFields .custom-field')].map(r => ({
+    label: r.querySelector('.cf-label').value.trim(),
+    value: r.querySelector('.cf-value').value.trim(),
+    secret: r.querySelector('.cf-secret').checked
+  })).filter(c => c.value);
+  const data = {
+    title, type: currentType, fields: collectTypeFields(), custom,
+    notes: document.getElementById('fNotes').value.trim(),
+    tags: document.getElementById('fTags').value.split(',').map(t => t.trim()).filter(Boolean),
+    favorite: document.getElementById('fFav').checked, updated: Date.now()
+  };
+  if (editingId) Object.assign(items.find(i => i.id === editingId), data);
+  else items.unshift({ id: uid(), created: Date.now(), ...data });
+  persist(); render(); closeModal('itemModal');
+  showToast(editingId ? 'Item updated' : 'Item saved & encrypted', 'success');
+}
+
+/* ---------- generator ---------- */
+function generatePassword(len, up, low, num, sym, noAmb) {
+  let set = '';
+  if (up) set += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  if (low) set += 'abcdefghijklmnopqrstuvwxyz';
+  if (num) set += '0123456789';
+  if (sym) set += '!@#$%^&*()-_=+[]{};:,.?';
+  if (!set) set = 'abcdefghijklmnopqrstuvwxyz';
+  if (noAmb) set = set.replace(/[Il1O0o]/g, '');
+  const arr = crypto.getRandomValues(new Uint32Array(len));
+  return [...arr].map(n => set[n % set.length]).join('');
+}
+function runGenerator() {
+  const len = +document.getElementById('genLen').value;
+  document.getElementById('genLenLabel').textContent = len;
+  const pw = generatePassword(len,
+    document.getElementById('genUpper').checked, document.getElementById('genLower').checked,
+    document.getElementById('genNum').checked, document.getElementById('genSym').checked,
+    document.getElementById('genAmb').checked);
+  document.getElementById('genOut').textContent = pw;
+  paintStrength('genStrengthBar', 'genStrengthLabel', pw);
+}
+function openGenerator() { openModal('genModal'); runGenerator(); }
+
+/* ---------- backup / restore ---------- */
+function download(name, content, type='application/json') {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], { type }));
+  a.download = name; a.click(); URL.revokeObjectURL(a.href);
+}
+function exportEncrypted() {
+  const blob = getBlob();
+  if (!blob) return;
+  download(`workhub-vault-${new Date().toISOString().slice(0,10)}.vault`,
+    JSON.stringify({ app:'workhub-vault', v:1, encrypted:true, ...blob }, null, 2));
+  showToast('Encrypted backup downloaded', 'success');
+}
+function exportPlainJSON() {
+  confirmDialog('Export unencrypted?', 'This file will contain all your secrets in plain text. Store it carefully.', () => {
+    download(`workhub-vault-PLAIN-${new Date().toISOString().slice(0,10)}.json`, JSON.stringify(items, null, 2));
+    closeModal('confirmModal');
+    showToast('Plain export downloaded — keep it safe', 'error');
+  }, 'Export anyway');
+}
+async function handleRestore(ev) {
+  const file = ev.target.files[0]; if (!file) return;
+  ev.target.value = '';
+  try {
+    const data = JSON.parse(await file.text());
+    if (Array.isArray(data)) {                     // plain JSON import
+      if (masterKey) { await mergeItems(data); showToast('Items imported', 'success'); }
+      else { pendingRestore = data; showToast('Unlock/create your vault to finish importing'); }
+      return;
+    }
+    if (!data.ct) { showToast('Not a valid vault backup', 'error'); return; }
+    const pw = prompt('Master password of that backup file:');
+    if (!pw) return;
+    const key = await deriveKey(pw, unb64(data.salt), data.iter || PBKDF2_ITER);
+    const imported = await decryptPayload(key, data.iv, data.ct);
+    if (masterKey) { await mergeItems(imported); showToast(`Imported ${imported.length} items`, 'success'); }
+    else {
+      pendingRestore = imported;
+      showToast('Backup unlocked — now set the password for this browser');
+      initLockScreen();
+    }
+  } catch (e) { showToast('Could not read backup (wrong password or bad file)', 'error'); }
+}
+async function mergeItems(incoming) {
+  let added = 0, updated = 0;
+  incoming.forEach(n => {
+    const ex = items.find(i => i.id === n.id);
+    if (!ex) { items.push(n); added++; }
+    else if ((n.updated || 0) > (ex.updated || 0)) { Object.assign(ex, n); updated++; }
+  });
+  await persist(); render();
+  showToast(`Merged: ${added} new, ${updated} updated`, 'success');
+}
+async function changeMaster() {
+  const cur = prompt('Current master password:'); if (cur === null) return;
+  const blob = getBlob();
+  try { await decryptPayload(await deriveKey(cur, unb64(blob.salt), blob.iter), blob.iv, blob.ct); }
+  catch(e) { showToast('Current password is wrong', 'error'); return; }
+  const np = prompt('New master password (min 8 chars):'); if (!np) return;
+  if (np.length < 8) { showToast('Too short', 'error'); return; }
+  if (np !== prompt('Confirm new master password:')) { showToast('Passwords do not match', 'error'); return; }
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  masterKey = await deriveKey(np, salt);
+  localStorage.setItem(K.blob, JSON.stringify({ v:1, salt:b64(salt), iter:PBKDF2_ITER, iv:'', ct:'' }));
+  await persist();
+  showToast('Master password changed', 'success');
+}
+function destroyVault() {
+  confirmDialog('Delete this vault?', 'All encrypted data in this browser will be erased. This cannot be undone.', () => {
+    localStorage.removeItem(K.blob); localStorage.removeItem(K.hint);
+    masterKey = null; items = [];
+    closeModal('confirmModal'); lockVault();
+    showToast('Vault deleted');
+  });
+}
+
+/* ---------- settings / ui ---------- */
+function loadSettings() {
+  try { Object.assign(settings, JSON.parse(localStorage.getItem(K.settings)) || {}); } catch(e){}
+  document.getElementById('setAutoLock').value = settings.autoLock;
+  document.getElementById('setClipClear').checked = settings.clipClear;
+  document.getElementById('setMask').checked = settings.mask;
+  document.getElementById('setLockHidden').checked = settings.lockHidden;
+  document.getElementById('layoutBtn').innerHTML = `<i class="fas fa-${settings.layout==='list'?'list':'th-large'}"></i>`;
+}
+function saveSettings() {
+  settings.autoLock = +document.getElementById('setAutoLock').value;
+  settings.clipClear = document.getElementById('setClipClear').checked;
+  settings.mask = document.getElementById('setMask').checked;
+  settings.lockHidden = document.getElementById('setLockHidden').checked;
+  localStorage.setItem(K.settings, JSON.stringify(settings));
+  resetLockTimer(); renderCards();
+}
+function toggleLayout() {
+  settings.layout = settings.layout === 'grid' ? 'list' : 'grid';
+  localStorage.setItem(K.settings, JSON.stringify(settings));
+  document.getElementById('layoutBtn').innerHTML = `<i class="fas fa-${settings.layout==='list'?'list':'th-large'}"></i>`;
+  renderCards();
+}
+function toggleTheme() {
+  const t = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = t;
+  localStorage.setItem(K.theme, t);
+  document.getElementById('themeIcon').className = 'fas fa-' + (t === 'dark' ? 'sun' : 'moon');
+}
+function toggleSidebar(force) {
+  const sb = document.getElementById('sidebar'), ov = document.getElementById('sidebarOverlay');
+  const open = force !== undefined ? force : !sb.classList.contains('open');
+  sb.classList.toggle('open', open); ov.classList.toggle('open', open);
+}
+function openModal(id){ document.getElementById(id).classList.add('active'); }
+function closeModal(id){ document.getElementById(id).classList.remove('active'); }
+function confirmDialog(title, msg, cb, label='Delete') {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent = msg;
+  const b = document.getElementById('confirmBtn');
+  b.textContent = label;
+  b.onclick = () => { cb(); closeModal('confirmModal'); };
+  openModal('confirmModal');
+}
+function showToast(msg, type='info') {
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.innerHTML = `<i class="fas fa-${type==='success'?'check-circle':type==='error'?'circle-exclamation':'circle-info'}"></i>${esc(msg)}`;
+  document.getElementById('toastContainer').appendChild(el);
+  setTimeout(() => el.remove(), 3200);
+}
+
+/* ---------- init ---------- */
+document.documentElement.dataset.theme = localStorage.getItem(K.theme) || 'light';
+loadSettings();
+document.getElementById('themeIcon').className = 'fas fa-' + (document.documentElement.dataset.theme === 'dark' ? 'sun' : 'moon');
+initLockScreen();
+
+document.getElementById('searchInput').addEventListener('input', e => { search = e.target.value; renderCards(); });
+document.getElementById('masterPw').addEventListener('input', e => { if (setupMode) paintStrength('pwStrengthBar','pwStrengthLabel', e.target.value); });
+['masterPw','masterPw2','masterHint'].forEach(id => document.getElementById(id)
+  .addEventListener('keydown', e => { if (e.key === 'Enter') submitMaster(); }));
+document.addEventListener('keydown', e => {
+  if (!masterKey) return;
+  if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+    e.preventDefault(); document.getElementById('searchInput').focus();
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'l') { e.preventDefault(); lockVault(); }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openItemModal(); }
+  if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+});
+['mousemove','keydown','click'].forEach(ev => document.addEventListener(ev, () => { if (masterKey) resetLockTimer(); }, { passive:true }));
+document.addEventListener('visibilitychange', () => { if (document.hidden && settings.lockHidden && masterKey) lockVault(); });
+document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('active'); }));
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
